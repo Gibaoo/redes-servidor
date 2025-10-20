@@ -25,6 +25,10 @@ public class Connection extends Thread{
         return amount;
     }
 
+    public void setAmount(Integer identificador, Integer final_amount){
+        amount.put(identificador, final_amount);
+    }
+
     public void run(){
     num=0;
     players=new ConcurrentHashMap<>();

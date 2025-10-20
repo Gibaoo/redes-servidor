@@ -1,15 +1,16 @@
+//Código servidor que com certeza funciona:
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class BlackJack extends Thread{
 
     private Connection connection;
-    private Baralho baralho = new Baralho();
     private HashMap <Integer, Integer> bets = new HashMap<>();
 
     // Accept the Connection object so we can read its players live
@@ -21,6 +22,10 @@ public class BlackJack extends Thread{
         while(true){
             Map<Integer, Socket> players = null;
             Map<Integer, Integer> amount = null;
+            Baralho baralho = new Baralho();
+            HashMap<Integer, ArrayList<Carta>> cards = new HashMap<>();
+            ArrayList<Carta> Dealer = new ArrayList<>();
+
             if (connection != null) {
                 players = connection.getPlayers();
                 amount = connection.getAmount();
@@ -49,9 +54,52 @@ public class BlackJack extends Thread{
                         try {
                             BufferedReader entrada1 = new BufferedReader(new InputStreamReader(socket_jogador.getInputStream()));
                             DataOutputStream outToClient =new DataOutputStream(socket_jogador.getOutputStream());
-
+                            
                             //Código para o cliente saber em qual parte do jogo nós estamos 
-                            outToClient.writeBytes("0"+'\n');
+                            outToClient.writeBytes("aa0"+'\n');
+
+                            outToClient.writeBytes(amount.get(identificador).toString() + '\n');
+
+                            if(amount.get(identificador)==0){
+                                    players.remove(identificador);
+                                    amount.remove(identificador);
+                                    bets.remove(identificador);
+
+                                    if(players.size()==0){
+                                        System.out.println("\n\nZero, mai frendi\n\n");
+                                        synchronized(connection){
+                                            try {
+                                                connection.wait();
+                                            } catch (InterruptedException e) {
+                                                e.printStackTrace();
+                                            }
+                                            continue;
+                                        }
+                                    }
+                                }
+
+                            //Sair
+                            outToClient.writeBytes("Gostaria de sair?"+'\n');
+                            String resposta_jogador=entrada1.readLine();
+                            if(resposta_jogador.equals("sair")){
+                                    players.remove(identificador);
+                                    amount.remove(identificador);
+                                    bets.remove(identificador);
+
+                                    if(players.size()==0){
+                                        System.out.println("\n\nZero, mai frendi\n\n");
+                                        synchronized(connection){
+                                            try {
+                                                connection.wait();
+                                            } catch (InterruptedException e) {
+                                                e.printStackTrace();
+                                            }
+                                            continue;
+                                        }
+                                    }
+                                }
+
+                            //Saldo:
 
                             //Frasesinha:
                             outToClient.writeBytes(mensagem + '\n');
@@ -63,7 +111,7 @@ public class BlackJack extends Thread{
                             outToClient.writeBytes(amount.get(identificador).toString() + '\n');
 
                             System.out.println("Esperando resposta do Jogador "+identificador+"...");
-                            String resposta_jogador=entrada1.readLine();
+                            resposta_jogador=entrada1.readLine();
                             System.out.println("Resposta do Jogador: "+resposta_jogador+"\n");
                             bets.put(identificador, Integer.parseInt(resposta_jogador));
 
@@ -102,50 +150,38 @@ public class BlackJack extends Thread{
                             BufferedReader entrada1 = new BufferedReader(new InputStreamReader(socket_jogador.getInputStream()));
                             DataOutputStream outToClient =new DataOutputStream(socket_jogador.getOutputStream());
                            
-                            outToClient.writeBytes("1"+'\n');
+                            outToClient.writeBytes("aa1"+'\n');
 
                             System.out.println("Esperando confirmacao de validade...");
                             String resposta_jogador=entrada1.readLine();
                             System.out.println("Valor obtido: "+resposta_jogador+'\n');
 
-                            if(resposta_jogador.equals("true")) {
-                                System.out.println("Esperando resposta do Jogador "+identificador+"...");
-                                resposta_jogador=entrada1.readLine();
-                                System.out.println("Resposta do Jogador: "+resposta_jogador+"\n");
-                                
-                                if(resposta_jogador.equals("sair")){
-                                    players.remove(identificador);
-                                    amount.remove(identificador);
-                                    bets.remove(identificador);
+                            Dealer.add(new Carta(baralho.retirarcarta()));
+                            Dealer.add(new Carta(baralho.retirarcarta()));
 
-                                    if(players.size()==0){
-                                        System.out.println("\n\nZero, mai frendi\n\n");
-                                        synchronized(connection){
-                                            try {
-                                                connection.wait();
-                                            } catch (InterruptedException e) {
-                                                e.printStackTrace();
-                                            }
-                                            continue;
-                                        }
-                                    }
-                                }
+                            if(resposta_jogador.equals("true")) {
+                                //System.out.println("Esperando resposta do Jogador "+identificador+"...");
+                                //resposta_jogador=entrada1.readLine();
+                                //System.out.println("Resposta do Jogador: "+resposta_jogador+"\n");
+                                
+                                outToClient.writeBytes(Dealer.get(0).toString()+'\n');
+                                
+                                cards.put(identificador, new ArrayList<Carta>());
 
                                 //Carta 1
-                                String mensagem=baralho.retirarcarta().toString();
+                                Integer carta_1=baralho.retirarcarta();
+                                cards.get(identificador).add(new Carta(carta_1));
+                                String mensagem=carta_1.toString();
                                 outToClient.writeBytes(mensagem + '\n'); 
                                 
                                 //Carta 2
-                                mensagem=baralho.retirarcarta().toString();
-                                outToClient.writeBytes(mensagem + '\n');    
+                                Integer carta_2=baralho.retirarcarta();
+                                cards.get(identificador).add(new Carta(carta_2));
+                                mensagem=carta_2.toString();
+                                outToClient.writeBytes(mensagem + '\n');
+
                                 System.out.println("Eviando m\u00e3o para jogador "+identificador+": "+mensagem);
-                                
-                                try{
-                                    Thread.sleep(1000);
-                                }catch(InterruptedException e){
-                                    //Thread.currentThread().interrupt();
-                                
-                                }
+                                System.out.println("Mao do jogador "+identificador+": "+cards.get(identificador));
                             } 
                     }catch (IOException e) {
                         //e.printStackTrace();
@@ -166,7 +202,7 @@ public class BlackJack extends Thread{
                             DataOutputStream outToClient =new DataOutputStream(socket_jogador.getOutputStream());
 
                             //Código para o cliente saber em qual parte do jogo nós estamos 
-                            outToClient.writeBytes("2"+'\n');
+                            outToClient.writeBytes("aa2"+'\n');
 
                             System.out.println("Esperando confirmacao de validade...");
                             String resposta_jogador=entrada1.readLine();
@@ -181,8 +217,20 @@ public class BlackJack extends Thread{
                                 //bets.put(identificador, resposta_jogador);
 
                                 if(resposta_jogador.equals("hit")){
-                                    String mensagem=baralho.retirarcarta().toString();
-                                    outToClient.writeBytes(mensagem+"\n");
+                                    Integer carta_1=baralho.retirarcarta();
+                                    cards.get(identificador).add(new Carta(carta_1));
+                                    outToClient.writeBytes(carta_1+"\n");
+
+                                    Integer pontos_jogador=0;
+
+                                    for(Carta carta : cards.get(identificador)){
+                                        pontos_jogador=pontos_jogador+carta.getPontos();
+                                    }
+
+                                    if(pontos_jogador>21){
+                                        connection.setAmount(identificador, amount.get(identificador)-bets.get(identificador));
+                                    }
+                                    
                                 }
 
                                 if(resposta_jogador.equals("stand")){
@@ -199,6 +247,65 @@ public class BlackJack extends Thread{
                             //outToClient.writeBytes("Voce escolheu: "+resposta_jogador+ '\n'); 
                             //System.out.println("Eviando m\u00e3o para jogador "+identificador+": "+mensagem);
                         }
+                        }catch (IOException e) {
+                            //e.printStackTrace();
+
+                        } 
+            }
+
+            //#4 ciclo: Determining who wins
+            System.out.println("Vez do Dealer...");
+                System.out.println(players);
+                Integer pontos_do_dealer=Dealer.get(0).getPontos()+Dealer.get(1).getPontos();
+                
+                if(pontos_do_dealer<=16){
+                    Dealer.add(new Carta(baralho.retirarcarta()));
+                    pontos_do_dealer=0;
+
+                    for (Carta carta:Dealer){
+                        pontos_do_dealer=pontos_do_dealer+carta.getPontos();
+                    }
+                }
+
+                for (Map.Entry<Integer, Socket> entrada : players.entrySet()) {
+                    Integer identificador = entrada.getKey();
+                    Socket socket_jogador = entrada.getValue();
+
+                        try {
+                            BufferedReader entrada1 = new BufferedReader(new InputStreamReader(socket_jogador.getInputStream()));
+                            DataOutputStream outToClient =new DataOutputStream(socket_jogador.getOutputStream());
+
+                            //Código para o cliente saber em qual parte do jogo nós estamos 
+                            outToClient.writeBytes("aa3"+'\n');
+
+                            //Sinal de validade do jogador
+                            System.out.println("Esperando confirmacao de validade...");
+                            String resposta_jogador=entrada1.readLine();
+                            System.out.println("Valor obtido: "+resposta_jogador+'\n');
+
+                            if(resposta_jogador.equals("true")){
+                                //Cartas do Dealer + pontos do dealer (visualização, somente)
+                                outToClient.writeBytes("Cartas do Dealer: "+Dealer.toString()+" | Pontos do Dealer: "+(pontos_do_dealer)+'\n');
+                                //Pontos do Dealer, para tratamento interno
+                                outToClient.writeBytes(pontos_do_dealer.toString()+'\n');
+                                
+                                if(pontos_do_dealer>21){
+                                    connection.setAmount(identificador, amount.get(identificador)+bets.get(identificador));
+                                }
+
+                                Integer pontos_jogador=0;
+                                for(Carta carta : cards.get(identificador)){
+                                    pontos_jogador=pontos_jogador+carta.getPontos();
+                                }
+
+                                if(pontos_jogador>pontos_do_dealer){
+                                    connection.setAmount(identificador, amount.get(identificador)+bets.get(identificador));
+                                }
+
+                                if(pontos_jogador<pontos_do_dealer){
+                                    connection.setAmount(identificador, amount.get(identificador)-bets.get(identificador));
+                                }
+                            }
                         }catch (IOException e) {
                             //e.printStackTrace();
 
