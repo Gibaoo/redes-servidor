@@ -10,7 +10,7 @@ public class BlackJack extends Thread{
 
     private Connection connection;
     private Baralho baralho = new Baralho();
-    private HashMap <Integer, String> bets = new HashMap<>();
+    private HashMap <Integer, Integer> bets = new HashMap<>();
 
     // Accept the Connection object so we can read its players live
     public BlackJack(Connection connection){
@@ -20,8 +20,10 @@ public class BlackJack extends Thread{
     public void run(){
         while(true){
             Map<Integer, Socket> players = null;
+            Map<Integer, Integer> amount = null;
             if (connection != null) {
                 players = connection.getPlayers();
+                amount = connection.getAmount();
             }
 
             if (players==null || players.size()==0){
@@ -50,11 +52,20 @@ public class BlackJack extends Thread{
 
                             //Código para o cliente saber em qual parte do jogo nós estamos 
                             outToClient.writeBytes("0"+'\n');
+
+                            //Frasesinha:
                             outToClient.writeBytes(mensagem + '\n');
+
+                            //Saldos
+                            outToClient.writeBytes("Saldos: "+amount.toString() + '\n');
+
+                            //Quantidade de dinheiro que o respectivo player possui
+                            outToClient.writeBytes(amount.get(identificador).toString() + '\n');
+
                             System.out.println("Esperando resposta do Jogador "+identificador+"...");
                             String resposta_jogador=entrada1.readLine();
                             System.out.println("Resposta do Jogador: "+resposta_jogador+"\n");
-                            bets.put(identificador, resposta_jogador);
+                            bets.put(identificador, Integer.parseInt(resposta_jogador));
 
                             outToClient.writeBytes("Voce apostou: "+resposta_jogador+ '\n'); 
                             //System.out.println("Eviando m\u00e3o para jogador "+identificador+": "+mensagem);
@@ -86,7 +97,7 @@ public class BlackJack extends Thread{
                     Integer identificador = entrada.getKey();
                     Socket socket_jogador = entrada.getValue();
 
-                        String mensagem=identificador + ": " + baralho.retirarcarta().toString()+" "+baralho.retirarcarta().toString();
+                        //String mensagem=identificador + ": " + baralho.retirarcarta().toString()+" "+baralho.retirarcarta().toString();
                         try {
                             BufferedReader entrada1 = new BufferedReader(new InputStreamReader(socket_jogador.getInputStream()));
                             DataOutputStream outToClient =new DataOutputStream(socket_jogador.getOutputStream());
@@ -101,11 +112,10 @@ public class BlackJack extends Thread{
                                 System.out.println("Esperando resposta do Jogador "+identificador+"...");
                                 resposta_jogador=entrada1.readLine();
                                 System.out.println("Resposta do Jogador: "+resposta_jogador+"\n");
-
-                                outToClient.writeBytes(mensagem + '\n'); 
-                                System.out.println("Eviando m\u00e3o para jogador "+identificador+": "+mensagem);
+                                
                                 if(resposta_jogador.equals("sair")){
                                     players.remove(identificador);
+                                    amount.remove(identificador);
                                     bets.remove(identificador);
 
                                     if(players.size()==0){
@@ -120,6 +130,16 @@ public class BlackJack extends Thread{
                                         }
                                     }
                                 }
+
+                                //Carta 1
+                                String mensagem=baralho.retirarcarta().toString();
+                                outToClient.writeBytes(mensagem + '\n'); 
+                                
+                                //Carta 2
+                                mensagem=baralho.retirarcarta().toString();
+                                outToClient.writeBytes(mensagem + '\n');    
+                                System.out.println("Eviando m\u00e3o para jogador "+identificador+": "+mensagem);
+                                
                                 try{
                                     Thread.sleep(1000);
                                 }catch(InterruptedException e){
@@ -137,7 +157,7 @@ public class BlackJack extends Thread{
         //#3 ciclo: Deciding the course of action
         System.out.println("Mostrando possibilidades de ação...");
                 System.out.println(players);
-        for (Map.Entry<Integer, Socket> entrada : players.entrySet()) {
+                for (Map.Entry<Integer, Socket> entrada : players.entrySet()) {
                     Integer identificador = entrada.getKey();
                     Socket socket_jogador = entrada.getValue();
 
@@ -154,19 +174,25 @@ public class BlackJack extends Thread{
 
                             if(resposta_jogador.equals("true")){
 
-                                outToClient.writeBytes("Voce tem duas opcoes: stand ou hit" + '\n');
+                                outToClient.writeBytes("Voce tem tres opcoes: stand, hit ou double" + '\n');
                                 System.out.println("Esperando resposta do Jogador "+identificador+"...");
                                 resposta_jogador=entrada1.readLine();
                                 System.out.println("Resposta do Jogador: "+resposta_jogador+"\n");
                                 //bets.put(identificador, resposta_jogador);
 
                                 if(resposta_jogador.equals("hit")){
-                                    String mensagem="Carta Extra: "+baralho.retirarcarta().toString();
+                                    String mensagem=baralho.retirarcarta().toString();
                                     outToClient.writeBytes(mensagem+"\n");
                                 }
 
                                 if(resposta_jogador.equals("stand")){
                                     String mensagem="OK. Confident, huh?";
+                                    outToClient.writeBytes(mensagem+"\n");
+                                }
+
+                                if(resposta_jogador.equals("double")){
+                                    bets.put(identificador, 2*bets.get(identificador));
+                                    String mensagem="OK. REEEEEEEEAL Confident: "+bets.get(identificador);
                                     outToClient.writeBytes(mensagem+"\n");
                                 }
 
