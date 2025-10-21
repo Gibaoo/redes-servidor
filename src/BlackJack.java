@@ -76,49 +76,51 @@ public class BlackJack extends Thread{
                                             continue;
                                         }
                                     }
-                                }
+                            }else{
+                                 //Sair
+                                outToClient.writeBytes("Gostaria de sair?"+'\n');
+                                String resposta_jogador=entrada1.readLine();
+                                if(resposta_jogador.equals("sair")){
+                                        players.remove(identificador);
+                                        amount.remove(identificador);
+                                        bets.remove(identificador);
 
-                            //Sair
-                            outToClient.writeBytes("Gostaria de sair?"+'\n');
-                            String resposta_jogador=entrada1.readLine();
-                            if(resposta_jogador.equals("sair")){
-                                    players.remove(identificador);
-                                    amount.remove(identificador);
-                                    bets.remove(identificador);
-
-                                    if(players.size()==0){
-                                        System.out.println("\n\nZero, mai frendi\n\n");
-                                        synchronized(connection){
-                                            try {
-                                                connection.wait();
-                                            } catch (InterruptedException e) {
-                                                e.printStackTrace();
+                                        if(players.size()==0){
+                                            System.out.println("\n\nZero, mai frendi\n\n");
+                                            synchronized(connection){
+                                                try {
+                                                    connection.wait();
+                                                } catch (InterruptedException e) {
+                                                    e.printStackTrace();
+                                                }
+                                                continue;
                                             }
-                                            continue;
                                         }
                                     }
-                                }
 
-                            //Saldo:
+                                //Saldo:
 
-                            //Frasesinha:
-                            outToClient.writeBytes(mensagem + '\n');
+                                //Frasesinha:
+                                outToClient.writeBytes(mensagem + '\n');
 
-                            //Saldos
-                            outToClient.writeBytes("Saldos: "+amount.toString() + '\n');
+                                //Saldos
+                                outToClient.writeBytes("Saldos: "+amount.toString() + '\n');
 
-                            //Quantidade de dinheiro que o respectivo player possui
-                            outToClient.writeBytes(amount.get(identificador).toString() + '\n');
+                                //Quantidade de dinheiro que o respectivo player possui
+                                outToClient.writeBytes(amount.get(identificador).toString() + '\n');
 
-                            System.out.println("Esperando resposta do Jogador "+identificador+"...");
-                            resposta_jogador=entrada1.readLine();
-                            System.out.println("Resposta do Jogador: "+resposta_jogador+"\n");
-                            bets.put(identificador, Integer.parseInt(resposta_jogador));
+                                System.out.println("Esperando resposta do Jogador "+identificador+"...");
+                                resposta_jogador=entrada1.readLine();
+                                System.out.println("Resposta do Jogador: "+resposta_jogador+"\n");
+                                bets.put(identificador, Integer.parseInt(resposta_jogador));
 
-                            outToClient.writeBytes("Voce apostou: "+resposta_jogador+ '\n'); 
-                            //System.out.println("Eviando m\u00e3o para jogador "+identificador+": "+mensagem);
-                            //players.remove(identificador);
-                            // small pause after sending to avoid tight-loop
+                                outToClient.writeBytes("Voce apostou: "+resposta_jogador+ '\n'); 
+                                //System.out.println("Eviando m\u00e3o para jogador "+identificador+": "+mensagem);
+                                //players.remove(identificador);
+                                // small pause after sending to avoid tight-loop
+                            }
+
+                           
                         
                     }catch (IOException e) {
                         //e.printStackTrace();
@@ -141,6 +143,9 @@ public class BlackJack extends Thread{
                 System.out.println("Distribuindo cartas para os jogadores...");
                 System.out.println(players);
 
+                Dealer.add(new Carta(baralho.retirarcarta()));
+                Dealer.add(new Carta(baralho.retirarcarta()));
+
                 for (Map.Entry<Integer, Socket> entrada : players.entrySet()) {
                     Integer identificador = entrada.getKey();
                     Socket socket_jogador = entrada.getValue();
@@ -155,9 +160,6 @@ public class BlackJack extends Thread{
                             System.out.println("Esperando confirmacao de validade...");
                             String resposta_jogador=entrada1.readLine();
                             System.out.println("Valor obtido: "+resposta_jogador+'\n');
-
-                            Dealer.add(new Carta(baralho.retirarcarta()));
-                            Dealer.add(new Carta(baralho.retirarcarta()));
 
                             if(resposta_jogador.equals("true")) {
                                 //System.out.println("Esperando resposta do Jogador "+identificador+"...");
