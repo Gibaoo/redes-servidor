@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Connection extends Thread{
     private ServerSocket servidorSocket;
     private ConcurrentHashMap<Integer, Socket> players;
+    private ConcurrentHashMap<Integer, Integer> amount;
     private int num;
 
     public Map<Integer, Socket> getPlayers() {
@@ -20,9 +21,18 @@ public class Connection extends Thread{
         return servidorSocket;
     }
 
+    public Map<Integer, Integer> getAmount(){
+        return amount;
+    }
+
+    public void setAmount(Integer identificador, Integer final_amount){
+        amount.put(identificador, final_amount);
+    }
+
     public void run(){
     num=0;
     players=new ConcurrentHashMap<>();
+    amount=new ConcurrentHashMap<>();
 
         try (ServerSocket servidorSocket = new ServerSocket(6789)) {
             this.servidorSocket = servidorSocket;
@@ -32,6 +42,7 @@ public class Connection extends Thread{
                 Socket socket = servidorSocket.accept();
 
                 players.put(num+1, socket);
+                amount.put(num+1, 100);
                 System.out.println("Tamanho do array: "+players.size()+"\n");
                 if(players.size()==1){
                     synchronized(this){

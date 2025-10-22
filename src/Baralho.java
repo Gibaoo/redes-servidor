@@ -3,19 +3,16 @@ import java.util.*;
 
 public class Baralho {
 
-    private List<Carta> cartas = new ArrayList<>();
-    private static final String[] NAIPES = {"♠", "♣", "♥", "♦"};
+    private List<Integer> cartas = new ArrayList<>();
 
     public Baralho(){
-        for(String naipes:NAIPES){
-            for(Valor rank:Valor.values()){
-                cartas.add(new Carta(rank, naipes));
-            }
+        for(int i=0; i<52; i++){
+            cartas.add(i);
         }
         Collections.shuffle(cartas, new Random());
     }
 
-    public Carta retirarcarta() {
+    public Integer retirarcarta() {
         return cartas.remove(cartas.size() - 1);
     }
 }

@@ -22,21 +22,7 @@ public class Player {
     public int calculojogada(){
         int total = 0;
         int q_A = 0;
-
-        for (Carta carta : mao) {
-            if (carta.getRank() == Valor.A) {
-                q_A++;
-                total += 11;
-            } else {
-                total += carta.getRank().getPontos();
-            }
-        }
-        while (total > 21 && q_A > 0) {
-            total -= 10;
-            q_A--;
-        }
-
-        return total;
+    return total;
     }
 
     public boolean estourou(){
