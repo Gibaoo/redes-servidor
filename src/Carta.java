@@ -8,7 +8,7 @@ public class Carta {
      * A ordem é importante para o cálculo (A, 2, 3, ..., K).
      */
     public enum Valor {
-        AS("A", 0),      // Para Blackjack, 0 é um valor especial para ser tratado depois
+        AS("A", 11),      // Para Blackjack, 0 é um valor especial para ser tratado depois
         DOIS("2", 2),
         TRES("3", 3),
         QUATRO("4", 4),

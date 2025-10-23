@@ -5,49 +5,60 @@ public class Player {
 
     protected boolean online = true;
     protected String nick;
-    protected List<Carta> mao = new ArrayList<>();
+    protected List<Carta> hand = new ArrayList<>();
+    protected boolean valid = false;
 
-    public Player(String nick){
+    public Player(String nick) {
         this.nick = nick;
     }
 
-    public void receberCarta(Carta carta){
-        mao.add(carta);
+    public void getCard(Carta card) {
+        hand.add(card);
     }
 
-    public String getNick(){
+    public String getNick() {
         return nick;
     }
 
-    public int calculojogada(){
-        int total = 0;
-        int q_A = 0;
-    return total;
-    }
-
-    public boolean estourou(){
-        return calculojogada() > 21;
-    }
-
-    public String showhand(){
+    public String showHand() {
         StringBuilder sb = new StringBuilder();
-        for (Carta carta : mao) {
+        for (Carta carta : hand) {
             sb.append(carta.toString()).append(" ");
         }
         return sb.toString().trim();
     }
-    public boolean esta_online() {
-        return online;
+
+    public List<Carta> getHand() {
+        return hand;
     }
 
-    public void stop(){
-        online = false;
+    public void clearHand() {
+        hand.clear();
     }
 
-    @Override
-    public String toString() {
-        return nick + " " + showhand() + " Total: "  + calculojogada();
+    /**
+     * Calcula os pontos da mão atual, tratando a lógica do Ás (1 ou 11).
+     */
+    public int calcularPontos() {
+        int pontos = 0;
+        int numAses = 0;
+
+        for (Carta carta : hand) {
+            int pontosCarta = carta.getPontos();
+            if (pontosCarta == 11) {
+                numAses++;
+            }
+            pontos += pontosCarta;
+        }
+
+        // Se estourar (pontos > 21) e tiver Ases,
+        // transforma o valor de cada Ás de 11 para 1 até ficar <= 21
+        while (pontos > 21 && numAses > 0) {
+            pontos -= 10;
+            numAses--;
+        }
+
+        return pontos;
     }
+
 }
-
-
