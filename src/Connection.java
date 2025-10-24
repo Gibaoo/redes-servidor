@@ -15,7 +15,7 @@ public class Connection extends Thread {
 
     private ServerSocket servidorSocket;
     private ConcurrentHashMap<String, Socket> players;
-    private ConcurrentHashMap<String, Integer> amount;
+    private ConcurrentHashMap<String, Integer> amount; // Mapa de saldos em memória
     private static final Map<String, String> username = new HashMap<>();
     private static final Map<String, String> fichas = new HashMap<>();
     private final ObjectMapper map = new ObjectMapper();
@@ -30,6 +30,9 @@ public class Connection extends Thread {
         return players;
     }
 
+    public Socket getPlayerSocket(String nickname) {
+        return players.get(nickname);
+    }
     public ServerSocket getServidorSocket() {
         return servidorSocket;
     }
@@ -38,7 +41,9 @@ public class Connection extends Thread {
         return amount;
     }
 
+
     //Melhorar mensagens de status
+    
     public synchronized boolean isGameInProgress() {
         return isGameInProgress;
     }

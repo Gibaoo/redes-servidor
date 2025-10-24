@@ -6,7 +6,6 @@ public class Dealer extends Player {
     public void jogar(Baralho baralho) {
         System.out.println("\nDealer revela a mão: " + this);
         while (calcularPontos() < 17) {
-            //receberCarta(baralho.retirarcarta());
             System.out.println("Dealer puxa carta: " + this);
         }
     }

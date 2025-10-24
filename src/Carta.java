@@ -48,10 +48,10 @@ public class Carta {
      * IDs 39-51  (div 13 = 3) -> DIAMANTES
      */
     public enum Naipe {
-        ESPADAS("\u2660"),
-        PAUS("\u2663"),
-        COPAS("\u2665"),
-        DIAMANTES("\u2666");
+        ESPADAS("E"),
+        PAUS("P"),
+        COPAS("C"),
+        DIAMANTES("D");
 
         private final String simbolo;
 
